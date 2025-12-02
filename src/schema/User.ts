@@ -8,6 +8,7 @@ export interface IUser extends Document {
   expiry: Date;
   isVerified: boolean;
   socketId: string;
+  fcmToken: string;
 }
 
 const UserSchema: Schema = new Schema(
@@ -35,6 +36,10 @@ const UserSchema: Schema = new Schema(
       default: false,
     },
     socketId: {
+      type: String,
+      default: "",
+    },
+    fcmToken: {
       type: String,
       default: "",
     },

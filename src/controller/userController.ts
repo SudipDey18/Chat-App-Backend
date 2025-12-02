@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { generateOTP } from 'otp-gen-next';
-import { User } from "../schema/User";
-import sendOtp from "../helper/otpHelper";
+import { User } from "../schema/User.js";
+import sendOtp from "../helper/otpHelper.js";
 import jwt from "jsonwebtoken";
 
 export const createUser = async (req: Request, res: Response) => {

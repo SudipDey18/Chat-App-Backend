@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getContacts, getMessage, searchContact } from "../controller/messageController";
+import { getContacts, getMessage, searchContact } from "../controller/messageController.js";
 
 const router = Router();
 
