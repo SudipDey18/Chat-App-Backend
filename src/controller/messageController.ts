@@ -66,7 +66,7 @@ import { sendNotification } from "../helper/notification.js";
 // };
 
 export const sendMessage = async (data: any, callback?: Function) => {
-  const { roomId, message, sender, reciver, _id } = data;
+  const { roomId, senderMsg, reciverMsg, sender, reciver, _id } = data;
 
   try {
     let room = await ChatRoom.findOne({
@@ -76,7 +76,8 @@ export const sendMessage = async (data: any, callback?: Function) => {
     const createdMessage = await Message.create({
       sender: sender._id,
       receiver: reciver,
-      message,
+      senderMsg,
+      reciverMsg
     });
 
     if (!createdMessage) {
@@ -96,11 +97,11 @@ export const sendMessage = async (data: any, callback?: Function) => {
         .populate({
           path: "participants",
           match: { _id: { $ne: sender._id } },
-          select: "_id name",
+          select: "_id name publicKey",
         })
         .select("participants");
 
-      console.log(newRoomForSender);
+      // console.log(newRoomForSender);
 
       if (senderData?.socketId && newRoomForSender) {
         io.to(senderData.socketId).emit("receiveRoom", newRoomForSender);
@@ -111,11 +112,11 @@ export const sendMessage = async (data: any, callback?: Function) => {
           .populate({
             path: "participants",
             match: { _id: sender._id },
-            select: "_id name",
+            select: "_id name publicKey",
           })
           .select("participants");
 
-        console.log(newRoomForReciver);
+        // console.log(newRoomForReciver);
 
         if (newRoomForReciver)
           io.to(reciverData.socketId).emit("receiveRoom", newRoomForReciver);
@@ -127,7 +128,8 @@ export const sendMessage = async (data: any, callback?: Function) => {
           _id: createdMessage._id,
           oldId: _id,
           roomId: room._id,
-          message,
+          senderMsg,
+          reciverMsg,
           reciver,
           sender,
           createdAt: createdMessage.createdAt,
@@ -140,15 +142,16 @@ export const sendMessage = async (data: any, callback?: Function) => {
         _id: createdMessage._id,
         oldId: _id,
         roomId,
-        message,
+        senderMsg,
+        reciverMsg,
         reciver,
         sender,
         createdAt: createdMessage.createdAt,
       });
     }
 
-    if(reciverData && reciverData.fcmToken && !reciverData.socketId){
-      sendNotification(reciverData.fcmToken, sender.name);
+    if (reciverData && reciverData.fcmToken && !reciverData.socketId) {
+      sendNotification(reciverData.fcmToken, sender.name, sender._id);
     }
 
 
@@ -192,7 +195,7 @@ export const getMessage = async (req: Request, res: Response) => {
           select: "name _id",
         },
       })
-      .select("messages");
+      .select("senderMsg reciverMsg");
 
     res
       .status(200)
@@ -227,7 +230,7 @@ export const getContacts = async (req: Request, res: Response) => {
       .populate({
         path: "participants",
         match: { _id: { $ne: sender.id } },
-        select: "_id name",
+        select: "_id name publicKey",
       })
       .select("participants");
 
@@ -253,7 +256,7 @@ export const searchContact = async (req: Request, res: Response) => {
         $regex: name.toString(),
         $options: "i",
       },
-    }).select("_id name");
+    }).select("_id name publicKey");
 
     res
       .status(200)

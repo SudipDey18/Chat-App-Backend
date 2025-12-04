@@ -45,7 +45,7 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const verifyOtp = async (req: Request, res: Response) => {
     console.log(req.body);
-    
+
     try {
         const { mobileNo, otp } = req.body;
 
@@ -67,7 +67,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
             const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
                 expiresIn: "30d",
             });
-            return res.json({ success: true, message: "OTP verified", token, verified: true, userId: user._id, name:user.name });
+            return res.json({ success: true, message: "OTP verified", token, verified: true, userId: user._id, name: user.name, publicKey: user.publicKey });
         }
 
         return res.json({ success: true, message: "OTP verified", token: null, verified: false });
@@ -78,8 +78,12 @@ export const verifyOtp = async (req: Request, res: Response) => {
 };
 
 export const updateProfile = async (req: Request, res: Response) => {
-    const { mobileNo, name, username } = req.body;
-    console.log(req.body);
+    const { mobileNo, name, username, publicKey } = req.body;
+    // console.log(req.body);
+
+    if (!mobileNo || !name || !username || !publicKey) {
+        return res.status(404).json({ error: true, message: "All fields are required" });
+    }
 
     try {
         const oldUser = await User.findOne({ username: username });
@@ -96,6 +100,7 @@ export const updateProfile = async (req: Request, res: Response) => {
         user.name = name;
         user.isVerified = true;
         user.username = username;
+        user.publicKey = publicKey;
         await user.save();
 
         const payload = {
@@ -106,7 +111,7 @@ export const updateProfile = async (req: Request, res: Response) => {
         const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
             expiresIn: "30d",
         });
-        return res.json({ success: true, message: "Profile Updated sucessfully", token, verified: true, userId:user._id, name });
+        return res.json({ success: true, message: "Profile Updated sucessfully", token, verified: true, userId: user._id, name });
     } catch (error) {
         console.log(error);
         return res.status(500).json({ error: true, message: "Server error" });

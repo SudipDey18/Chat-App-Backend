@@ -1,6 +1,6 @@
-import { fcm } from "../config/firebase";
+import { fcm } from "../config/firebase.js";
 
-export async function sendNotification(token:string,name:string) {
+export async function sendNotification(token:string,name:string,id:string) {
     if (!token) return
 
     const message = {
@@ -9,11 +9,11 @@ export async function sendNotification(token:string,name:string) {
             title: "💬 New Message",
             body: `Message recived from ${name}` || "You have a message",
         },
-        data: {},
+        data: {id,newMessage: "true"},
     };
 
     try {
-        await fcm.send(message);
+        console.log(await fcm.send(message));
         return
     } catch (err) {
         console.error("FCM Error", err);

@@ -9,6 +9,7 @@ export interface IUser extends Document {
   isVerified: boolean;
   socketId: string;
   fcmToken: string;
+  publicKey: string;
 }
 
 const UserSchema: Schema = new Schema(
@@ -43,6 +44,10 @@ const UserSchema: Schema = new Schema(
       type: String,
       default: "",
     },
+    publicKey: {
+      type: String,
+      default: "",
+    }
   },
   { timestamps: true }
 );

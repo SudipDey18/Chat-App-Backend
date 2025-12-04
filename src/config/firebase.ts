@@ -1,15 +1,16 @@
 import admin from "firebase-admin";
-import { readFileSync } from "fs";
+import dotenv from "dotenv";
 
-const serviceAccount = JSON.parse(
-  readFileSync(
-    "/home/sudipdey/Desktop/Projects/SAI DEV/chat app/Main Backend/dipdey-d1b0a-firebase-adminsdk-kvves-be7f732bb9.json",
-    "utf8",
-  ),
-);
+dotenv.config();
+
+const serviceAccount = {
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+  privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+};
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
 });
 
 export const fcm = admin.messaging();
