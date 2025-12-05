@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import connectDB from "./config/dbConfig.js";
 import userRouter from "./router/userRouter.js";
 import messageRouter from "./router/messageRouter.js";
+import fileRouter from "./router/fileRouter.js";
 import { sendMessage } from "./controller/messageController.js";
 import { jwtTokenType } from "./Types/type";
 import jwt from "jsonwebtoken";
@@ -30,6 +31,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/user", userRouter);
 app.use("/api/message", messageRouter);
+app.use("/file", fileRouter);
 
 io.on("connection", async (socket) => {
   console.log("🔌 User connected:", socket.id);
