@@ -5,10 +5,13 @@ import connectDB from "./config/dbConfig.js";
 import userRouter from "./router/userRouter.js";
 import messageRouter from "./router/messageRouter.js";
 import fileRouter from "./router/fileRouter.js";
+import privateChatRouter from "./router/privateChatRouter.js";
 import { sendMessage } from "./controller/messageController.js";
 import { jwtTokenType } from "./Types/type";
 import jwt from "jsonwebtoken";
 import { User } from "./schema/User.js";
+import { joinRoom } from "./controller/privateChatControler.js";
+import { getDatabaseWithUrl } from "firebase-admin/database";
 
 const app = express();
 app.use(express.json());
@@ -32,6 +35,7 @@ app.get("/", (req, res) => {
 app.use("/api/user", userRouter);
 app.use("/api/message", messageRouter);
 app.use("/file", fileRouter);
+app.use("/api/privateChat", privateChatRouter);
 
 io.on("connection", async (socket) => {
   console.log("🔌 User connected:", socket.id);
@@ -57,7 +61,7 @@ io.on("connection", async (socket) => {
 
     await User.findByIdAndUpdate(user.id, {
       socketId: socket.id,
-      fcmToken
+      fcmToken,
     });
 
     console.log(`✅ User ${user.name} authenticated with socket ${socket.id}`);
@@ -67,7 +71,31 @@ io.on("connection", async (socket) => {
       console.log(`👤 User ${user.name} joined room: ${roomId}`);
     });
 
+    socket.on("joinPrivateChat", (data) => {
+      joinRoom(socket, data);
+    });
+
+    socket.on("leftPrivateChat", (data) => {
+      // console.log(data);
+      socket.leave(data.roomId);
+      socket.to(data.roomId).emit("userLeft", { leftUser: data.user });
+    });
+
     socket.on("sendMessage", sendMessage);
+
+    socket.on("privateChat", async (data: any) => {
+      const { roomId, message, user } = data;
+      socket.to(roomId).emit("privateMessage", {
+        message,
+        sender: user,
+        timestamp: new Date().toISOString(),
+        own: false,
+      });
+      socket.emit("successMessage", {
+        success: true,
+        roomId: data.roomId,
+      });
+    });
 
     socket.on("disconnect", async () => {
       console.log(`❌ User ${user.name} disconnected:`, socket.id);

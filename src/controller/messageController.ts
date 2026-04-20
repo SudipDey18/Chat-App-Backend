@@ -266,3 +266,43 @@ export const searchContact = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error while Search contacts" });
   }
 };
+
+export const getContactDetails = async (req: Request, res: Response) => {
+  const { roomId } = req.query;
+  const { authorization } = req.headers;
+
+  if (!roomId) {
+    return res.status(400).json({ message: "Room Id is required" });
+  }
+
+  try {
+
+    const token = authorization?.replace("Bearer ", "");
+
+    if (!token) {
+      return res.status(404).json({ message: "Invald token Provided" });
+    }
+
+    const sender: jwtTokenType | null = jwt.decode(
+      token,
+    ) as jwtTokenType | null;
+
+    if (!sender) {
+      return res.status(400).json({ messahe: "Invalid Token type" });
+    }
+
+    const roomDetails = await ChatRoom.findById(roomId).populate({
+      path: "participants",
+      match: { _id: { $ne: sender.id } },
+      select: "_id name publicKey",
+    })
+    .select("participants");
+
+    res
+      .status(200)
+      .json({ message: "Contacts Fetched sucessfully", roomDetails: roomDetails || [] });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error while Search contacts" });
+  }
+};
