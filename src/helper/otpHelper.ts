@@ -1,37 +1,25 @@
 import axios from "axios";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
+
 dotenv.config();
 
-const api_url = process.env.WP_API || "https://sudip-wp.zeabur.app";
-const wp_user = process.env.WP_USERNAME || "root";
-const wp_password = process.env.WP_PASSWORD || "root";
-
+const apiKey = process.env.TEXTMEBOT_API_KEY || "";
 
 const sendOtp = async (mobileNo: string, otp: string) => {
-    const otp_template = `
-    *Hi user,*
-    your login otp is: *${otp}*
-    -otp valid only for 5 minute
-    Thank you for connect with us,
-           --team *chat-app*.
-    `
-    return await axios.post(
-        `${api_url}/send/message`,
-        {
-            'phone': `91${mobileNo}@s.whatsapp.net`,
-            'message': otp_template || "```Something went wrong in our server```",
-            'is_forwarded': false,
-        },
-        {
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            auth: {
-                username: wp_user,
-                password: wp_password
-            }
-        }
-    );
-}
+  const otp_template = `Hi user,
+Your login OTP is: ${otp}
+OTP is valid for 5 minutes.
 
-export default sendOtp
+Thank you for connecting with us.
+- Team Chat App`;
+
+  return await axios.get("https://api.textmebot.com/send.php", {
+    params: {
+      recipient: `91${mobileNo}`,
+      apikey: apiKey,
+      text: otp_template,
+    },
+  });
+};
+
+export default sendOtp;

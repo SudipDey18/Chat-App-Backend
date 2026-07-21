@@ -77,14 +77,16 @@ export const sendMessage = async (data: any, callback?: Function) => {
       sender: sender._id,
       receiver: reciver,
       senderMsg,
-      reciverMsg
+      reciverMsg,
     });
 
     if (!createdMessage) {
       throw new Error("Error while creating message");
     }
 
-    let senderData = await User.findById(sender._id).select("socketId fcmToken");
+    let senderData = await User.findById(sender._id).select(
+      "socketId fcmToken",
+    );
     let reciverData = await User.findById(reciver).select("socketId fcmToken");
 
     if (!room) {
@@ -151,9 +153,8 @@ export const sendMessage = async (data: any, callback?: Function) => {
     }
 
     if (reciverData && reciverData.fcmToken && !reciverData.socketId) {
-      sendNotification(reciverData.fcmToken, sender.name, sender._id);
+      sendNotification(reciverData.fcmToken, sender.name, sender._id, roomId);
     }
-
 
     if (callback) {
       callback({
@@ -197,12 +198,10 @@ export const getMessage = async (req: Request, res: Response) => {
       })
       .select("senderMsg reciverMsg");
 
-    res
-      .status(200)
-      .json({
-        message: "message Fetched sucessfully",
-        allMessages: oldRoom?.messages || [],
-      });
+    res.status(200).json({
+      message: "message Fetched sucessfully",
+      allMessages: oldRoom?.messages || [],
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error while Reciving message" });
@@ -276,7 +275,6 @@ export const getContactDetails = async (req: Request, res: Response) => {
   }
 
   try {
-
     const token = authorization?.replace("Bearer ", "");
 
     if (!token) {
@@ -291,16 +289,20 @@ export const getContactDetails = async (req: Request, res: Response) => {
       return res.status(400).json({ messahe: "Invalid Token type" });
     }
 
-    const roomDetails = await ChatRoom.findById(roomId).populate({
-      path: "participants",
-      match: { _id: { $ne: sender.id } },
-      select: "_id name publicKey",
-    })
-    .select("participants");
+    const roomDetails = await ChatRoom.findById(roomId)
+      .populate({
+        path: "participants",
+        match: { _id: { $ne: sender.id } },
+        select: "_id name publicKey",
+      })
+      .select("participants");
 
     res
       .status(200)
-      .json({ message: "Contacts Fetched sucessfully", roomDetails: roomDetails || [] });
+      .json({
+        message: "Contacts Fetched sucessfully",
+        roomDetails: roomDetails || [],
+      });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error while Search contacts" });
