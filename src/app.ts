@@ -115,5 +115,5 @@ io.on("connection", async (socket) => {
 });
 
 connectDB().then(() => {
-  server.listen(3000, () => console.log("Server running on 3000"));
+  // server.listen(3000, () => console.log("Server running on 3000"));
 });
